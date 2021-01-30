@@ -1,0 +1,38 @@
+version: '3'
+
+volumes:
+  db-data:
+  public-data:
+  tmp-data:
+  log-data:
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - 'POSTGRES_USER=postgres'
+      - 'POSTGRES_PASSWORD=postgres'
+  app:
+    build: .
+    volumes:
+      - .:/webapp
+      - public-data:/webapp/public
+      - tmp-data:/webapp/tmp
+    environment:
+      - EDITOR=vim      
+    command: rails s
+    depends_on:
+      - db
+  web:
+    build:
+      context: containers/nginx
+    volumes:
+      - public-data:/webapp/public
+      - tmp-data:/webapp/tmp
+      - ./containers/nginx/log:/var/log/nginx/
+    ports:
+      - 80:80
+    depends_on:
+      - app

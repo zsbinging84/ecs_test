@@ -1,0 +1,49 @@
+#cloud-config
+
+runcmd:
+# ホスト名の変更
+ - sudo hostnamectl set-hostname webserver
+
+# パッケージのインストール
+## セキュリティ関連の更新のみがインストール
+ - sudo yum update --security -y
+
+# タイムゾーン変更
+## 設定ファイルのバックアップ
+ - sudo cp  -p /etc/localtime /etc/localtime.org
+
+## シンボリックリンク作成
+ - sudo ln -sf  /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+
+#yumの更新
+ - sudo yum -y update  
+  
+#gitをインストール
+  - sudo yum install git　
+
+#dockerをインストール
+  - sudo yum -y install docker
+
+#docker-composeをインストール
+  - sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+#docker-composeのシンボルを作成
+  - sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+#docker-composeに実行権限を追加
+  - sudo chmod +x /usr/local/bin/docker-compose
+
+#dockerを起動
+  - sudo service docker start 
+
+#railsアプをダウロード
+  - sudo git clone https://github.com/zsbinging84/circleci_test.git
+
+#DBの作成とテーブルの適用
+  - sudo docker-compose -f docker-compose.prod.yml run app rails db:create
+  - sudo docker-compose -f docker-compose.prod.yml run app rails db:migrate
+  - sudo docker-compose -f docker-compose.prod.yml run app rails webpacker:install 
+  - sudo docker-compose -f docker-compose.prod.yml run app rails webpacker:compile
+
+#railsアプリのコンテナ起動
+　- sudo docker-compose -f docker-compose.prod.yml up -d

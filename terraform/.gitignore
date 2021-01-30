@@ -1,0 +1,3 @@
+/common/env-vars
+/common/.terraform/*
+/common/terraform.log
